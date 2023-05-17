@@ -18,31 +18,7 @@ db.on("error", console.error.bind(console, "connection error: "));
 db.once("open", async function () {
   console.log("Connected successfully");
   //db.db.command({"replSetGetStatus": 1})
-
-  await dateTest();
-
-  await dirtyReadWriteTest();
-
 });
-const dirtyReadWriteTest = async ()=>{
-  let u = new User({
-    name: "M Ma",
-    lastActiveAt: new Date(),
-    version: 1
-  })
-  u = await u.save();
-  await updateWithVer(u.id, u.version, "M");
-  await updateWithVer(u.id, u.version, "Ma");
-
-  u = await User.findById(u._id).exec();
-  await updateWithVer(u.id, u.version, "MMa");
-}
-const dateTest = async ()=>{
-  await saveDate("String date", '2023-05-17');
-  await saveDate("JS date", new Date(2023, 4, 17));
-  await saveDate("Number date", 1232345);
-  await saveDate("Not a date", "123dfds456");
-}
 const saveDate = async (name, date) => {
   let user = new User({
     name: name,
@@ -59,19 +35,45 @@ const saveDate = async (name, date) => {
   console.log("toUTCString: " + user.lastActiveAt.toUTCString());
   console.log("toLocaleString: " + user.lastActiveAt.toLocaleString());
   console.log("toDateString: " + user.lastActiveAt.toDateString());
-
-
 }
 
 const updateWithVer = async (id, version, name) => {
 
-  console.log("Update name to: "+name);
-  if(await User.findOneAndUpdate({ _id: id, version: version }, { $set: { name: name }, $inc: { version: 1 } })){
+  console.log("Update name to: " + name);
+  if (await User.findOneAndUpdate({ _id: id, version: version }, { $set: { name: name }, $inc: { version: 1 } })) {
     console.log("success");
-  }else{
+  } else {
     console.log("failed. document no found.");
   }
 }
+
+
+app.get('/test-save-date', async (req, res) => {
+  await saveDate("String date", '2023-05-17');
+  await saveDate("JS date", new Date(2023, 4, 17));
+  await saveDate("Number date", 1232345);
+  try{
+    await saveDate("Not a date", "123dfds456");
+  }catch(ex){
+    console.error(ex);
+  }
+  res.send(await User.find({})); 
+});
+
+app.get('/test-dirty-update', async (req, res) => {
+  let u = new User({
+    name: "M Ma",
+    lastActiveAt: new Date(),
+    version: 1
+  })
+  u = await u.save();
+  await updateWithVer(u.id, u.version, "M");
+  await updateWithVer(u.id, u.version, "Ma");
+
+  u = await User.findById(u._id).exec();
+  await updateWithVer(u.id, u.version, "MMa");
+  res.send((await User.findById(u.id).exec()).toJsonWithLocalDate()); 
+});
 
 app.listen(3000, () => {
   console.log("Server is running at port 3000");
