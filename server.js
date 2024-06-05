@@ -62,8 +62,7 @@ app.get('/stable-api', async (req, res) => {
       const c = new MongoClient(uri,
         option
       );
-      console.log(option);
-      console.log(await c.db('admin').command({ "replSetGetStatus": 1 }));
+      console.log(option, await c.db('admin').command({ "replSetGetStatus": 1 }));
     } catch (err) {
       console.log(err);
     }
