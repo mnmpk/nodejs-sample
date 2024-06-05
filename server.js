@@ -63,12 +63,13 @@ app.get('/stable-api', async (req, res) => {
       const client1 = new MongoClient(uri,
         option
       );
-      result+=JSON.stringify(option);
+      result+=JSON.stringify(option)+":";
       result+=await client1.db('admin').command({ "replSetGetStatus": 1 });
     } catch (err) {
       console.log(err);
-      result+=err.message
+      result+=err.name+" "+err.message
     }
+    result+="\n";
   });
   res.send(result);
 });
