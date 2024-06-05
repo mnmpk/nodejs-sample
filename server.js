@@ -64,7 +64,7 @@ app.get('/stable-api', async (req, res) => {
       );
       console.log(option, await c.db('admin').command({ "replSetGetStatus": 1 }));
     } catch (err) {
-      console.log(err);
+      console.log(option, err);
     }
   });
   res.send();
