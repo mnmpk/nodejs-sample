@@ -13,7 +13,6 @@ const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error: "));
 db.once("open", async function () {
   console.log("Connected successfully");
-  //db.db.command({"replSetGetStatus": 1})
 });
 const saveDate = async (name, date) => {
   let user = new User({
@@ -43,21 +42,69 @@ const updateWithVer = async (id, version, name) => {
   }
 }
 
+app.get('/stable-api', async (req, res) => {
+  try {
+    const client1 = new MongoClient(uri,
+      { serverApi: { version: '1' } }
+    );
+    await client1.db('admin').command({ "replSetGetStatus": 1 });
+  } catch (exception) {
+    console.log(exception);
+  }
+  try {
+    const client2 = new MongoClient(uri,
+      //APIStrictError
+      { serverApi: { version: '1', strict: true } }
+    );
+    await client2.db('admin').command({ "replSetGetStatus": 1 });
+  } catch (exception) {
+    console.log(exception);
+  }
+  try {
+    const client3 = new MongoClient(uri,
+      //APIDeprecationError
+      { serverApi: { version: '1', strict: true, deprecationErrors: true } }
+    );
+    await client3.db('admin').command({ "replSetGetStatus": 1 });
+  } catch (exception) {
+    console.log(exception);
+  }
+  try {
+    const client4 = new MongoClient(uri,
+      //APIVersionError
+      { serverApi: { version: '99' } }
+    );
+    await client4.db('admin').command({ "replSetGetStatus": 1 });
+  } catch (exception) {
+    console.log(exception);
+  }
+  try {
+    const client5 = new MongoClient(uri,
+      //InvalidOptions
+      { serverApi: { strict: true, deprecationErrors: true } }
+    );
+    await client5.db('admin').command({ "replSetGetStatus": 1 });
+  } catch (exception) {
+    console.log(exception);
+  }
+
+  res.send();
+});
 app.get('/rs-status', async (req, res) => {
-  const adminDB = db.getClient().db('admin');
-  res.send(await adminDB.command({ "replSetGetStatus": 1 })); 
+  const adminDB = db.db('admin');
+  res.send(await adminDB.command({ "replSetGetStatus": 1 }));
 });
 
 app.get('/test-save-date', async (req, res) => {
   await saveDate("String date", '2023-05-17');
   await saveDate("JS date", new Date(2023, 4, 17));
   await saveDate("Number date", 1232345);
-  try{
+  try {
     await saveDate("Not a date", "123dfds456");
-  }catch(ex){
+  } catch (ex) {
     console.error(ex);
   }
-  res.send(await User.find({})); 
+  res.send(await User.find({}));
 });
 
 app.get('/test-dirty-update', async (req, res) => {
@@ -72,32 +119,32 @@ app.get('/test-dirty-update', async (req, res) => {
 
   u = await User.findById(u._id).exec();
   await updateWithVer(u.id, u.version, "MMa");
-  res.send((await User.findById(u.id).exec()).toJsonWithLocalDate()); 
+  res.send((await User.findById(u.id).exec()).toJsonWithLocalDate());
 });
 
 app.get('/watch', async (req, res) => {
   const client = mongoose.connection.getClient();
   const snCollection = client.db('serviceNotificationDB').collection('serviceNotifications');
   snCollection.watch([]).on('change', async (data) => {
-    try {    
+    try {
       const _id = data.documentKey._id.toString();
       const operationType = data.operationType;
       const updateDescription = data.updateDescription ? data.updateDescription : {};
-    
+
       throw new Exception("error");
       switch (operationType) {
         case 'update':
           let updatedFields = updateDescription.updatedFields ? Object.keys(updateDescription.updatedFields) : [];
           let removedFields = updateDescription.removedFields;
           if (removedFields?.length) { updatedFields = updatedFields.concat(removedFields); }
-  
+
           for (let field of updatedFields) {
-              console.log(`Updating SN filterObject, id: ${_id}`);
-              break;
+            console.log(`Updating SN filterObject, id: ${_id}`);
+            break;
           }
-  
+
           for (let field of ['status', 'specialRequestRuleList']) {
-            if (updatedFields.includes(field)) { 
+            if (updatedFields.includes(field)) {
               console.log(`Updating SSA reminder date, id: ${_id}`);
               break;
             }
@@ -117,7 +164,7 @@ app.get('/watch', async (req, res) => {
 
 
   });
-  res.send("watching serviceNotifications"); 
+  res.send("watching serviceNotifications");
 });
 
 app.listen(3000, () => {
