@@ -65,8 +65,8 @@ app.get('/stable-api', async (req, res) => {
       );
       result+=JSON.stringify(option)+":";
       const res = await c.db('admin').command({ "replSetGetStatus": 1 });
-      console.log(res);
-      result+=res;
+      //console.log(res);
+      result+=JSON.stringify(res);
     } catch (err) {
       console.log(err);
       result+=err.name+" "+err.message
