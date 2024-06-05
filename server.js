@@ -46,52 +46,31 @@ const updateWithVer = async (id, version, name) => {
 }
 
 app.get('/stable-api', async (req, res) => {
-  try {
-    const client1 = new MongoClient(uri,
-      { serverApi: { version: '1' } }
-    );
-    console.log(await client1.db('admin').command({ "replSetGetStatus": 1 }));
-  } catch (exception) {
-    console.log(exception);
-  }
-  try {
-    const client2 = new MongoClient(uri,
-      //APIStrictError
-      { serverApi: { version: '1', strict: true } }
-    );
-    console.log(await client2.db('admin').command({ "replSetGetStatus": 1 }));
-  } catch (exception) {
-    console.log(exception);
-  }
-  try {
-    const client3 = new MongoClient(uri,
-      //APIDeprecationError
-      { serverApi: { version: '1', strict: true, deprecationErrors: true } }
-    );
-    console.log(await client3.db('admin').command({ "replSetGetStatus": 1 }));
-  } catch (exception) {
-    console.log(exception);
-  }
-  try {
-    const client4 = new MongoClient(uri,
-      //APIVersionError
-      { serverApi: { version: '99' } }
-    );
-    console.log(await client4.db('admin').command({ "replSetGetStatus": 1 }));
-  } catch (exception) {
-    console.log(exception);
-  }
-  try {
-    const client5 = new MongoClient(uri,
-      //InvalidOptions
-      { serverApi: { strict: true, deprecationErrors: true } }
-    );
-    console.log(await client5.db('admin').command({ "replSetGetStatus": 1 }));
-  } catch (exception) {
-    console.log(exception);
-  }
-
-  res.send();
+  const clientOptions=[
+    { serverApi: { version: '1' } },
+    //APIStrictError
+    { serverApi: { version: '1', strict: true } },
+    //APIDeprecationError
+    { serverApi: { version: '1', strict: true, deprecationErrors: true } },
+    //APIVersionError
+    { serverApi: { version: '99' } },
+    //InvalidOptions
+    { serverApi: { strict: true, deprecationErrors: true } }
+  ]
+  var result = "";
+  clientOptions.forEach(async option=>{
+    try {
+      const client1 = new MongoClient(uri,
+        option
+      );
+      result+=JSON.stringify(option);
+      result+=await client1.db('admin').command({ "replSetGetStatus": 1 });
+    } catch (err) {
+      console.log(err);
+      result+=err.message
+    }
+  });
+  res.send(result);
 });
 app.get('/rs-status', async (req, res) => {
   const adminDB = db.db('admin');
