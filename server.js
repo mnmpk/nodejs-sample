@@ -60,11 +60,13 @@ app.get('/stable-api', async (req, res) => {
   var result = "";
   clientOptions.forEach(async option=>{
     try {
-      const client1 = new MongoClient(uri,
+      const c = new MongoClient(uri,
         option
       );
       result+=JSON.stringify(option)+":";
-      result+=(await client1.db('admin').command({ "replSetGetStatus": 1 }));
+      const res = await c.db('admin').command({ "replSetGetStatus": 1 });
+      console.log(res);
+      result+=res;
     } catch (err) {
       console.log(err);
       result+=err.name+" "+err.message
