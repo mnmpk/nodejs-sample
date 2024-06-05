@@ -7,7 +7,9 @@ const app = express();
 
 app.use(express.json());
 
-mongoose.connect('mongodb://localhost:27017/test',
+const uri = "mongodb://localhost:27017/test";
+
+mongoose.connect(uri,
   { serverApi: { version: '1', strict: true } }
 );
 const db = mongoose.connection;
@@ -48,7 +50,7 @@ app.get('/stable-api', async (req, res) => {
     const client1 = new MongoClient(uri,
       { serverApi: { version: '1' } }
     );
-    await client1.db('admin').command({ "replSetGetStatus": 1 });
+    console.log(await client1.db('admin').command({ "replSetGetStatus": 1 }));
   } catch (exception) {
     console.log(exception);
   }
@@ -57,7 +59,7 @@ app.get('/stable-api', async (req, res) => {
       //APIStrictError
       { serverApi: { version: '1', strict: true } }
     );
-    await client2.db('admin').command({ "replSetGetStatus": 1 });
+    console.log(await client2.db('admin').command({ "replSetGetStatus": 1 }));
   } catch (exception) {
     console.log(exception);
   }
@@ -66,7 +68,7 @@ app.get('/stable-api', async (req, res) => {
       //APIDeprecationError
       { serverApi: { version: '1', strict: true, deprecationErrors: true } }
     );
-    await client3.db('admin').command({ "replSetGetStatus": 1 });
+    console.log(await client3.db('admin').command({ "replSetGetStatus": 1 }));
   } catch (exception) {
     console.log(exception);
   }
@@ -75,7 +77,7 @@ app.get('/stable-api', async (req, res) => {
       //APIVersionError
       { serverApi: { version: '99' } }
     );
-    await client4.db('admin').command({ "replSetGetStatus": 1 });
+    console.log(await client4.db('admin').command({ "replSetGetStatus": 1 }));
   } catch (exception) {
     console.log(exception);
   }
@@ -84,7 +86,7 @@ app.get('/stable-api', async (req, res) => {
       //InvalidOptions
       { serverApi: { strict: true, deprecationErrors: true } }
     );
-    await client5.db('admin').command({ "replSetGetStatus": 1 });
+    console.log(await client5.db('admin').command({ "replSetGetStatus": 1 }));
   } catch (exception) {
     console.log(exception);
   }
