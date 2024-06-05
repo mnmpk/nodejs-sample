@@ -57,23 +57,18 @@ app.get('/stable-api', async (req, res) => {
     //InvalidOptions
     { serverApi: { strict: true, deprecationErrors: true } }
   ]
-  var result = "";
-  clientOptions.forEach(option=>{
+  clientOptions.forEach(async option=>{
     try {
       const c = new MongoClient(uri,
         option
       );
-      result+=JSON.stringify(option)+":";
-      c.db('admin').command({ "replSetGetStatus": 1 }).then(
-        res=>result+=res
-      );
+      console.log(option);
+      console.log(await c.db('admin').command({ "replSetGetStatus": 1 }));
     } catch (err) {
       console.log(err);
-      result+=err.name+" "+err.message
     }
-    result+="\n";
   });
-  res.send(result);
+  res.send();
 });
 app.get('/rs-status', async (req, res) => {
   const adminDB = db.getClient().db('admin');
