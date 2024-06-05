@@ -6,11 +6,7 @@ const app = express();
 
 app.use(express.json());
 
-//4.4.15
-//mongoose.connect('mongodb+srv://admin:admin@cluster0.uskpz.mongodb.net/admin?retryWrites=true&w=majority',
-//5.0
-//mongoose.connect('mongodb+srv://admin:admin@atlassearch.uskpz.mongodb.net/admin?retryWrites=true&w=majority',
-mongoose.connect('mongodb+srv://admin:admin@demo.uskpz.mongodb.net/ha?retryWrites=true&w=majority',
+mongoose.connect('mongodb://localhost:27017/test',
   { serverApi: { version: '1', strict: true } }
 );
 const db = mongoose.connection;
@@ -47,6 +43,10 @@ const updateWithVer = async (id, version, name) => {
   }
 }
 
+app.get('/rs-status', async (req, res) => {
+  const adminDB = client.db('admin');
+  res.send(await adminDB.command({ "replSetGetStatus": 1 })); 
+});
 
 app.get('/test-save-date', async (req, res) => {
   await saveDate("String date", '2023-05-17');
