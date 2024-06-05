@@ -44,7 +44,7 @@ const updateWithVer = async (id, version, name) => {
 }
 
 app.get('/rs-status', async (req, res) => {
-  const adminDB = db('admin');
+  const adminDB = db.getClient().db('admin');
   res.send(await adminDB.command({ "replSetGetStatus": 1 })); 
 });
 
