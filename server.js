@@ -64,7 +64,7 @@ app.get('/stable-api', async (req, res) => {
         option
       );
       result+=JSON.stringify(option)+":";
-      result+=await client1.db('admin').command({ "replSetGetStatus": 1 });
+      result+=(await client1.db('admin').command({ "replSetGetStatus": 1 }));
     } catch (err) {
       console.log(err);
       result+=err.name+" "+err.message
